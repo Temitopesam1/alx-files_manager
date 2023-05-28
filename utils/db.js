@@ -1,25 +1,32 @@
 import { MongoClient } from 'mongodb';
 
 
-const host = process.env.DB_HOST ||'localhost';
-const port = process.env.DB_PORT || 27017;
-const database = process.env.DB_DATABASE || "files_manager";
+// const host = process.env.DB_HOST ||'localhost';
+// const port = process.env.DB_PORT || 27017;
+// const database = process.env.DB_DATABASE || "files_manager";
 
 
 class DBClient {
     constructor(){
 
-        const url = `mongodb://${host}:${port}`;
-        this.client = new MongoClient(url);
+        this.host = process.env.DB_HOST ||'localhost';
+        this.port = process.env.DB_PORT || 27017;
+        this.database = process.env.DB_DATABASE || "files_manager";
 
-        const connector = async () => {
+        this.url = `mongodb://${host}:${port}`;
+        // this.client = new MongoClient(url);
+
+        async function connectClient(url) {
 		    
 		    // Use connect method to connect to the server
-            await this.client.connect();
+            const client = new MongoClient(url);
+            await client.connect();
     	    console.log("Connected");
+            return client;
         }
 
-        connector();
+        this.client = connectClient(this.url)
+
 	    
         this.db = this.client.db(database);
 		this.userCollection = this.db.collection('users');
