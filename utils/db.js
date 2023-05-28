@@ -8,16 +8,18 @@ const database = process.env.DB_DATABASE || "files_manager";
 
 class DBClient {
     constructor(){
-        const DBObj = async () =>{
-		    const url = `mongodb://${host}:${port}`;
-		    const client = new MongoClient(url);
 
+        const url = `mongodb://${host}:${port}`;
+        this.client = new MongoClient(url);
+
+        const connector = async () => {
+		    
 		    // Use connect method to connect to the server
-            await client.connect();
+            await this.client.connect();
     	    console.log("Connected");
-            return client;
         }
-        this.client = DBObj();
+
+        connector();
 	    
         this.db = this.client.db(database);
 		this.userCollection = this.db.collection('users');
