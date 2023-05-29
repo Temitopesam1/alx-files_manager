@@ -1,37 +1,26 @@
 import { MongoClient } from 'mongodb';
 
 
-const host = process.env.DB_HOST ||'localhost';
-const port = process.env.DB_PORT || 27017;
-const database = process.env.DB_DATABASE || "files_manager";
-
 
 class DBClient {
     constructor(){
 
-        // this.host = process.env.DB_HOST ||'localhost';
-        // this.port = process.env.DB_PORT || 27017;
-        // this.database = process.env.DB_DATABASE || "files_manager";
+        const host = process.env.DB_HOST ||'localhost';
+        const port = process.env.DB_PORT || 27017;
+        const database = process.env.DB_DATABASE || "files_manager";
 
         this.url = `mongodb://${host}:${port}`;
-        this.connected = false;
-
-        async function connectClient(url) {
+        this.connected;
 		    
-		    // Use connect method to connect to the server
-            const client = new MongoClient(url);
-            await client.connect();
-            if (this.client.isConnected()){
-                this.connected = true;
-                return client;
+		// Use connect method to connect to the server
+        this.client = new MongoClient(url);
+        this.client.connect(function(err, client) {
+            if (err){
+                this.connected = false;
             }
-        }
-
-        this.client = connectClient(this.url)
-	    
-        this.db = this.client.db(database);
-		this.userCollection = this.db.collection('users');
-        this.fileCollection = this.db.collection('files');
+            client.db(database);
+            this.connected = true;
+          });
 
     }
 
@@ -41,10 +30,12 @@ class DBClient {
     }
 
     async nbUsers(){
+        this.userCollection = this.db.collection('users');
         return await this.userCollection.count();
     }
 
     async nbFiles(){
+        this.fileCollection = this.db.collection('files');
         return await this.fileCollection.count();
     }
 }
