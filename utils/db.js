@@ -3,6 +3,8 @@ import { MongoClient } from 'mongodb';
 
 
 class DBClient {
+
+
     constructor(){
 
         const host = process.env.DB_HOST ||'localhost';
@@ -10,33 +12,29 @@ class DBClient {
         const database = process.env.DB_DATABASE || "files_manager";
 
         this.url = `mongodb://${host}:${port}`;
-        this.connected;
 		    
-		// Use connect method to connect to the server
-        this.client = new MongoClient(url);
+	// Use connect method to connect to the server
+        this.client = new MongoClient(this.url, { useUnifiedTopology: true });
         this.client.connect(function(err, client) {
-            if (err){
-                this.connected = false;
-            }
-            client.db(database);
-            this.connected = true;
+		client.db(database);
           });
+	this.db = this.client.db(database);
 
     }
 
 
     isAlive(){
-        return this.connected;
+        return "None";
     }
 
     async nbUsers(){
         this.userCollection = this.db.collection('users');
-        return await this.userCollection.count();
+        return await this.userCollection.countDocuments();
     }
 
     async nbFiles(){
         this.fileCollection = this.db.collection('files');
-        return await this.fileCollection.count();
+        return await this.fileCollection.countDocuments();
     }
 }
 
