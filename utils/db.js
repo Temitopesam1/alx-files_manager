@@ -1,51 +1,47 @@
 import { MongoClient } from 'mongodb';
 
-
 // const host = process.env.DB_HOST ||'localhost';
 // const port = process.env.DB_PORT || 27017;
 // const database = process.env.DB_DATABASE || "files_manager";
 
-
 class DBClient {
-    constructor(){
+  constructor() {
+    this.host = process.env.DB_HOST || 'localhost';
+    this.port = process.env.DB_PORT || 27017;
+    this.database = process.env.DB_DATABASE || 'files_manager';
 
-        this.host = process.env.DB_HOST ||'localhost';
-        this.port = process.env.DB_PORT || 27017;
-        this.database = process.env.DB_DATABASE || "files_manager";
+    this.url = `mongodb://${this.host}:${this.port}`;
+    this.client = new MongoClient(this.url, { useUnifiedTopology: true });
+    this.userCollection = undefined;
+    this.fileCollection = undefined;
 
-        this.url = `mongodb://${host}:${port}`;
-        // this.client = new MongoClient(url);
-
-        async function connectClient(url) {
-		    
-		    // Use connect method to connect to the server
-            const client = new MongoClient(url);
-            await client.connect();
-    	    console.log("Connected");
-            return client;
-        }
-
-        this.client = connectClient(this.url)
-
-	    
-        this.db = this.client.db(database);
-		this.userCollection = this.db.collection('users');
-        this.fileCollection = this.db.collection('files');
-
+    async function connectClient(client) {
+      // Use connect method to connect to the server
+      await client.connect();
+      console.log('Connected Successfully!');
     }
 
+    connectClient(this.client)
 
-    isAlive(){
-        return this.client.isConnected();
-    }
+      .then(this.db = this.client.db(this.database))
+      .then(this.userCollection = this.db.collection('users'))
+      .then(this.fileCollection = this.db.collection('files'))
+      .catch(console.error);
+  }
 
-    async nbUsers(){
-        return await this.userCollection.count();
-    }
+  isAlive() {
+    return this.client.isConnected();
+  }
 
-    async nbFiles(){
-        return await this.fileCollection.count();
-    }
+  async nbUsers() {
+    const number = await this.userCollection.countDocuments();
+    return number;
+  }
+
+  async nbFiles() {
+    const number = await this.fileCollection.countDocuments();
+    return number;
+  }
 }
 
 const dbClient = new DBClient();
