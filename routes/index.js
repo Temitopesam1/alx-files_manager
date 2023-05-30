@@ -8,7 +8,7 @@ const router = Router();
 router.use('/users/me', userController.getMe);
 router.use('/status', appController.status);
 router.use('/stats', appController.stats);
-router.use('/users', userController.users);
+router.use('/users', userController.postNew);
 router.use('/connect', authController.getConnect);
 router.use('/Disconnect', authController.getDisconnect);
 

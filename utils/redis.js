@@ -1,5 +1,4 @@
-import { createClient } from "redis";
-
+import { createClient } from 'redis';
 
 class RedisClient {
   constructor() {
@@ -7,11 +6,11 @@ class RedisClient {
     this.connected = true;
 
     // Display any errors in the console
-    this.client.on('error', err => {
+    this.client.on('error', (err) => {
       this.connected = false;
       console.log(err.toString());
     });
-    this.client.on('ready', () =>{
+    this.client.on('ready', () => {
       this.connected = true;
     });
   }
@@ -60,4 +59,3 @@ class RedisClient {
 const redisClient = new RedisClient();
 
 export default redisClient;
-

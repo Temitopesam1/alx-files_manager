@@ -1,19 +1,22 @@
+/* eslint-disable class-methods-use-this */
 import redisClient from '../utils/redis';
 import mongoClient from '../utils/db';
 
 class AppController {
   status(req, res) {
-    this.redisAlive = redisClient.isAlive();
-    this.mongoAlive = mongoClient.isAlive();
-    if (this.redisAlive && this.mongoAlive) {
-      res.status(200).json({ redis: this.redisAlive, db: this.mongoAlive });
+    const redisAlive = redisClient.isAlive();
+    const mongoAlive = mongoClient.isAlive();
+    if (redisAlive && mongoAlive) {
+      res.status(200).json({ redis: redisAlive, db: mongoAlive });
+    } else {
+      res.status(500).send('Kindly wait a moment for our database');
     }
   }
 
   async stats(req, res) {
-    this.nUsers = await mongoClient.nbUsers();
-    this.nFiles = await mongoClient.nbFiles();
-    res.status(200).json({ users: this.nUsers, files: this.nFiles });
+    const nUsers = await mongoClient.nbUsers();
+    const nFiles = await mongoClient.nbFiles();
+    res.status(200).json({ users: nUsers, files: nFiles });
   }
 }
 const appController = new AppController();
