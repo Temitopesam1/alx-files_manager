@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use(bodyParser.json()); 
-app.use(router);
+app.use('/', router);
 
 
 app.listen(port, () => {
