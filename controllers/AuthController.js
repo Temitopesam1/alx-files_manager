@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import mongoClient from '../utils/db';
 import redisClient from '../utils/redis';
 
+const mongodb = require('mongodb');
+
 class AuthController {
   async getConnect(req, res) {
     const encodedBase64 = JSON.stringify(req.headers.authorization);
@@ -25,7 +27,6 @@ class AuthController {
 
   async getDisconnect(req, res) {
     const token = req.headers['x-token'];
-    console.log(token);
     const key = `auth_${token}`;
     const user = await redisClient.get(key);
     if (user) {
@@ -33,6 +34,23 @@ class AuthController {
       return res.status(204).end();
     }
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  async authenticate(req) {
+    const token = req.headers['x-token'];
+    if (token) {
+      const key = `auth_${token}`;
+      let userId = await redisClient.get(key);
+      if (userId) {
+        userId = new mongodb.ObjectId(userId);
+        const { userCollection } = mongoClient;
+        const user = await userCollection.findOne({ _id: userId });
+        if (user) {
+          return user;
+        }
+      }
+    }
+    return null;
   }
 }
 const authController = new AuthController();
