@@ -228,7 +228,7 @@ class FilesController {
           return res.status(500).send('Error reading file');
         }
         res.setHeader('Content-Type', mimeType);
-        res.send(data);
+        return res.send(data);
       });
     }
   }
