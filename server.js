@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 app.use(router);
 
 app.get('/', (req, res) => {
-  res.send('Welcome to Olamide and Temitope File Manager application');
+  res.send('Welcome to Olamide and Temitope File Manager API');
 });
 
 app.listen(port, () => {

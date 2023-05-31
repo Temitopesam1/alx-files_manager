@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable prefer-const */
 import { v4 as uuidv4 } from 'uuid';
+import mime from 'mime-types';
 import mongoClient from '../utils/db';
 import authController from './AuthController';
 
@@ -148,7 +149,6 @@ class FilesController {
     if (userOb) {
       let { id } = req.params;
       id = new mongo.ObjectID(id);
-      console.log('Publishing');
       await mongoClient.fileCollection.updateOne(
         { _id: id, userId: userOb._id },
         { $set: { isPublic: true } },
@@ -174,7 +174,6 @@ class FilesController {
     if (userOb) {
       let { id } = req.params;
       id = new mongo.ObjectID(id);
-      console.log('Unpublshing');
       await mongoClient.fileCollection.updateOne(
         { _id: id, userId: userOb._id },
         { $set: { isPublic: false } },
@@ -193,6 +192,45 @@ class FilesController {
       return res.status(404).json({ error: 'Not found' });
     }
     return res.status(401).json({ error: 'Unauthorised' });
+  }
+
+  // eslint-disable-next-line consistent-return
+  async getFile(req, res) {
+    let { id } = req.params;
+    id = new mongo.ObjectID(id);
+    const file = await mongoClient.fileCollection.findOne({ _id: id });
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    const userOb = await authController.authenticate(req);
+    if ((file.isPublic === false) && (!userOb)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    if ((file.isPublic === true) && (file.type === 'folder')) {
+      return res.status(400).json({ error: 'A folder doesn\'t have content' });
+    }
+    if (userOb) {
+      if (file.userId !== userOb._id) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      if (file.type === 'folder') {
+        return res.status(400).json({ error: 'A folder doesn\'t have content' });
+      }
+      const filePath = file.localPath;
+      if (!fs.existsSync(filePath)) {
+        return res.status(400).json({ error: 'Not found' });
+      }
+      const mimeType = mime.lookup(filePath);
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          const errorJson = { err };
+          console.log(errorJson);
+          return res.status(500).send('Error reading file');
+        }
+        res.setHeader('Content-Type', mimeType);
+        res.send(data);
+      });
+    }
   }
 }
 
