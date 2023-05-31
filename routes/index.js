@@ -1,4 +1,5 @@
 import Router from 'express';
+import handleConflict from '../utils/util';
 import appController from '../controllers/AppController';
 import userController from '../controllers/UsersController';
 import authController from '../controllers/AuthController';
@@ -12,6 +13,9 @@ router.use('/stats', appController.stats);
 router.use('/users', userController.postNew);
 router.use('/connect', authController.getConnect);
 router.use('/Disconnect', authController.getDisconnect);
-router.use('/files', filesController.postUpload);
+router.use('/files/:id/publish', filesController.putPublish);
+router.use('files/:id/unpublish', filesController.putUnpublish);
+router.use('/files/:id', filesController.getShow);
+router.use(handleConflict);
 
 module.exports = router;
