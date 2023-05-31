@@ -1,10 +1,11 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable prefer-const */
 import { v4 as uuidv4 } from 'uuid';
 import mongoClient from '../utils/db';
 import authController from './AuthController';
+
 const mongo = require('mongodb');
 const fs = require('fs');
-
 
 class FilesController {
   // eslint-disable-next-line class-methods-use-this
@@ -26,7 +27,7 @@ class FilesController {
       }
       if (parentId) {
         parentId = new mongo.ObjectId(parentId);
-        const item = await mongoClient.fileCollection.findOne({ '_id': parentId });
+        const item = await mongoClient.fileCollection.findOne({ _id: parentId });
         if (!item) {
           return res.status(400).json({ error: 'Parent not found' });
         }
@@ -61,8 +62,8 @@ class FilesController {
         data = Buffer.from(data, 'base64').toString('utf-8');
         const path = process.env.FOLDER_PATH || '/tmp/files_manager';
         const localPath = `${path}/${uuidv4()}`;
-        if (!fs.existsSync(path)){
-          fs.mkdirSync(path, {recursive: true});
+        if (!fs.existsSync(path)) {
+          fs.mkdirSync(path, { recursive: true });
         }
         fs.writeFileSync(localPath, data);
         const file = await mongoClient.fileCollection.insertOne({
@@ -87,13 +88,13 @@ class FilesController {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  async getShow(req, res){
+  async getShow(req, res) {
     const userOb = await authController.authenticate(req);
     if (userOb) {
       let { id } = req.params;
       id = new mongo.ObjectID(id);
-      const item = await mongoClient.fileCollection.findOne({ '_id': id, 'userId': userOb._id });
-      if (item){
+      const item = await mongoClient.fileCollection.findOne({ _id: id, userId: userOb._id });
+      if (item) {
         return res.status(201).json({
           id: item._id,
           userId: item.userId,
@@ -102,29 +103,31 @@ class FilesController {
           isPublic: item.isPublic,
           parentId: item.parentId,
         });
-      } else {
-        return res.status(404).json({'error': 'Not found'});
       }
+      return res.status(404).json({ error: 'Not found' });
     }
-    return res.status(401).json({'error': 'Unauthorized'});
+    return res.status(401).json({ error: 'Unauthorized' });
   }
-  async getIndex(req, res){
+
+  async getIndex(req, res) {
     const userOb = await authController.authenticate(req);
     const pageSize = 20;
     if (userOb) {
       let { parentId, page } = req.query;
-      if (!page){
+      if (!page) {
         page = 0;
       }
       page += 1;
-      if (parentId){
+      if (parentId) {
         parentId = new mongo.ObjectID(parentId);
-        const record = await mongoClient.fileCollection.findOne({'_id': parentId, 'userId': userOb._id });
-        if(record){
+        const record = await mongoClient.fileCollection.findOne(
+          { _id: parentId, userId: userOb._id },
+        );
+        if (record) {
           const records = await mongoClient.fileCollection.aggregate([
-            { $match: { parentId: parentId }},
+            { $match: { parentId } },
             { $skip: (page - 1) * pageSize },
-            { $limit: pageSize }
+            { $limit: pageSize },
           ]).toArray();
           return res.status(201).json(records);
         }
@@ -133,20 +136,25 @@ class FilesController {
       const userFiles = await mongoClient.fileCollection.aggregate([
         { $match: { userId: userOb._id } },
         { $skip: (page - 1) * pageSize },
-        { $limit: pageSize }
+        { $limit: pageSize },
       ]).toArray();
       return res.status(201).json(userFiles);
     }
-    return res.status(401).json({'error': 'Unauthorized'});
+    return res.status(401).json({ error: 'Unauthorized' });
   }
-  async putPublish(req, res){
+
+  async putPublish(req, res) {
     const userOb = await authController.authenticate(req);
-    if (userOb){
+    if (userOb) {
       let { id } = req.params;
       id = new mongo.ObjectID(id);
-      const item = await mongoClient.fileCollection.updateOne({ '_id': id, 'userId': userOb._id }, { $set: { isPublic: true } });;
-      if (item){
-
+      console.log('Publishing');
+      await mongoClient.fileCollection.updateOne(
+        { _id: id, userId: userOb._id },
+        { $set: { isPublic: true } },
+      );
+      const item = await mongoClient.fileCollection.findOne({ _id: id, userId: userOb._id });
+      if (item) {
         return res.status(200).json({
           id: item._id,
           userId: item.userId,
@@ -155,17 +163,37 @@ class FilesController {
           isPublic: item.isPublic,
           parentId: item.parentId,
         });
-      } else {
-        return res.status(404).json({'error': 'Not found'});
       }
+      return res.status(404).json({ error: 'Not found' });
     }
-    return res.status(401).json({'error': "Unauthorised"});
+    return res.status(401).json({ error: 'Unauthorised' });
   }
-  async putUnpublish(req, res){
 
+  async putUnpublish(req, res) {
+    const userOb = await authController.authenticate(req);
+    if (userOb) {
+      let { id } = req.params;
+      id = new mongo.ObjectID(id);
+      console.log('Unpublshing');
+      await mongoClient.fileCollection.updateOne(
+        { _id: id, userId: userOb._id },
+        { $set: { isPublic: false } },
+      );
+      const item = await mongoClient.fileCollection.findOne({ _id: id, userId: userOb._id });
+      if (item) {
+        return res.status(200).json({
+          id: item._id,
+          userId: item.userId,
+          name: item.name,
+          type: item.type,
+          isPublic: item.isPublic,
+          parentId: item.parentId,
+        });
+      }
+      return res.status(404).json({ error: 'Not found' });
+    }
+    return res.status(401).json({ error: 'Unauthorised' });
   }
-  
-
 }
 
 const filesController = new FilesController();
