@@ -13,9 +13,9 @@ router.use('/stats', appController.stats);
 router.use('/users', userController.postNew);
 router.use('/connect', authController.getConnect);
 router.use('/Disconnect', authController.getDisconnect);
+router.use('/files/:id/data', filesController.getFile);
 router.use('/files/:id/unpublish', filesController.putUnpublish);
 router.use('/files/:id/publish', filesController.putPublish);
-router.use('/files/:id/data', filesController.getFile);
 router.use('/files/:id', filesController.getShow);
 router.use(handleConflict);
 
