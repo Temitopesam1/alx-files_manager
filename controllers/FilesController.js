@@ -210,7 +210,7 @@ class FilesController {
       return res.status(400).json({ error: 'A folder doesn\'t have content' });
     }
     if (userOb) {
-      if (file.userId !== userOb._id) {
+      if (!file.userId.equals(userOb._id)) {
         return res.status(404).json({ error: 'Not found' });
       }
       if (file.type === 'folder') {
