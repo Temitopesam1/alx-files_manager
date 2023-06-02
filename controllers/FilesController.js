@@ -203,27 +203,28 @@ class FilesController {
       return res.status(404).json({ error: 'Not found' });
     }
     const userOb = await authController.authenticate(req);
-    if ((file.isPublic === false) && (!userOb || userOb._id === file.userId)) {
+    if ((file.isPublic === false) && (!userOb || !userOb._id.equals(file.userId))) {
       return res.status(404).json({ error: 'Not found' });
-    }
-    if ((file.isPublic === true) && (file.type === 'folder')) {
-      return res.status(400).json({ error: "A folder doesn't have content" });
-    }
-    if (file.type === 'folder') {
-      return res.status(400).json({ error: "A folder doesn't have content" });
-    }
-    const filePath = file.localPath;
-    if (!fs.existsSync(filePath)) {
-      return res.status(400).json({ error: 'Not found' });
-    }
-    const mimeType = mime.lookup(filePath);
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        return res.status(500).send('Error reading file');
+    } else {
+      if ((file.isPublic === true) && (file.type === 'folder')) {
+        return res.status(400).json({ error: "A folder doesn't have content" });
       }
-      res.setHeader('Content-Type', mimeType);
-      return res.send(data);
-    });
+      if (file.type === 'folder') {
+        return res.status(400).json({ error: "A folder doesn't have content" });
+      }
+      const filePath = file.localPath;
+      if (!fs.existsSync(filePath)) {
+        return res.status(400).json({ error: 'Not found' });
+      }
+      const mimeType = mime.lookup(filePath);
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          return res.status(500).send('Error reading file');
+        }
+        res.setHeader('Content-Type', mimeType);
+        return res.send(data);
+      });
+    }
   }
 }
 
